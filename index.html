@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Своя игра — ВПР 4 класс</title>
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+        --lilac-900: #4C1D95;
+        --lilac-800: #5B21B6;
+        --lilac-700: #6D28D9;
+        --lilac-600: #7C3AED;
+        --lilac-500: #8B5CF6;
+        --lilac-400: #A78BFA;
+        --lilac-300: #C4B5FD;
+        --lilac-200: #DDD6FE;
+        --lilac-100: #EDE9FE;
+        --lilac-50: #F5F3FF;
+        --gold: #FBBF24;
+        --gold-dark: #D97706;
+        --text-dark: #1F0F3D;
+        --text-light: #FFFFFF;
+        --shadow: 0 10px 30px rgba(76, 29, 149, 0.25);
+        --shadow-hover: 0 15px 40px rgba(76, 29, 149, 0.4);
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', 'Arial Rounded MT Bold', Tahoma, sans-serif;
+        background: linear-gradient(135deg, var(--lilac-100) 0%, var(--lilac-200) 50%, var(--lilac-100) 100%);
+        min-height: 100vh;
+        color: var(--text-dark);
+    }
+
+    body {
+        padding: 20px 15px 40px;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-size: clamp(1.6rem, 4vw, 2.6rem);
+        color: var(--lilac-800);
+        margin: 0 0 8px 0;
+        text-shadow: 2px 2px 0 var(--lilac-200);
+        letter-spacing: 1px;
+    }
+
+    .subtitle {
+        color: var(--lilac-700);
+        font-size: clamp(0.95rem, 2vw, 1.15rem);
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .score-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin: 20px auto;
+        padding: 14px 25px;
+        background: linear-gradient(135deg, var(--lilac-700), var(--lilac-500));
+        border-radius: 50px;
+        box-shadow: var(--shadow);
+        max-width: 380px;
+        color: var(--text-light);
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .score-label {
+        font-size: 1rem;
+        opacity: 0.95;
+    }
+
+    .score-value {
+        font-size: 1.6rem;
+        color: var(--gold);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .reset-btn {
+        background: var(--gold);
+        color: var(--lilac-900);
+        border: none;
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .reset-btn:hover, .reset-btn:focus {
+        background: var(--gold-dark);
+        color: var(--text-light);
+        transform: scale(1.05);
+        outline: 3px solid var(--lilac-900);
+        outline-offset: 2px;
+    }
+
+    .board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .category-header {
+        background: linear-gradient(135deg, var(--lilac-800), var(--lilac-600));
+        color: var(--text-light);
+        padding: 18px 10px;
+        border-radius: 14px;
+        text-align: center;
+        font-weight: bold;
+        font-size: clamp(0.9rem, 2vw, 1.15rem);
+        box-shadow: var(--shadow);
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        letter-spacing: 0.5px;
+    }
+
+    .cell {
+        background: linear-gradient(135deg, var(--lilac-500), var(--lilac-400));
+        color: var(--text-light);
+        padding: 25px 10px;
+        border-radius: 14px;
+        text-align: center;
+        font-weight: bold;
+        font-size: clamp(1.3rem, 3vw, 1.8rem);
+        cursor: pointer;
+        border: 3px solid var(--lilac-300);
+        box-shadow: var(--shadow);
+        transition: all 0.2s ease;
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: inherit;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.25);
+    }
+
+    .cell:hover:not(.used), .cell:focus:not(.used) {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: var(--shadow-hover);
+        background: linear-gradient(135deg, var(--lilac-600), var(--lilac-500));
+        outline: none;
+        border-color: var(--gold);
+    }
+
+    .cell.used {
+        background: linear-gradient(135deg, #9CA3AF, #6B7280);
+        color: rgba(255,255,255,0.5);
+        cursor: not-allowed;
+        border-color: #4B5563;
+        box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
+        text-decoration: line-through;
+    }
+
+    .cell.used::after {
+        content: "✓";
+        display: block;
+        font-size: 1.5rem;
+        color: var(--gold);
+        margin-top: 4px;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(31, 15, 61, 0.75);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 15px;
+        animation: fadeIn 0.25s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal {
+        background: linear-gradient(135deg, #FFFFFF, var(--lilac-50));
+        border-radius: 20px;
+        padding: 28px 25px;
+        max-width: 700px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        border: 3px solid var(--lilac-400);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 2px dashed var(--lilac-300);
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .modal-category {
+        color: var(--lilac-700);
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+
+    .modal-points {
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: var(--lilac-900);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        box-shadow: 0 3px 8px rgba(217, 119, 6, 0.4);
+    }
+
+    .modal-question {
+        font-size: clamp(1rem, 2.2vw, 1.2rem);
+        line-height: 1.6;
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        padding: 18px;
+        background: var(--lilac-100);
+        border-radius: 14px;
+        border-left: 5px solid var(--lilac-500);
+    }
+
+    .modal-question strong {
+        color: var(--lilac-800);
+    }
+
+    .answer-block {
+        display: none;
+        margin-top: 18px;
+        padding: 18px;
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        border-radius: 14px;
+        border-left: 5px solid var(--gold-dark);
+        animation: slideUp 0.3s ease;
+    }
+
+    .answer-block.visible {
+        display: block;
+    }
+
+    .answer-label {
+        font-weight: bold;
+        color: var(--gold-dark);
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .answer-text {
+        color: var(--text-dark);
+        line-height: 1.6;
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        white-space: pre-wrap;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 22px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        min-width: 140px;
+    }
+
+    .btn:focus {
+        outline: 3px solid var(--lilac-900);
+        outline-offset: 2px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--lilac-600), var(--lilac-500));
+        color: var(--text-light);
+        box-shadow: 0 4px 10px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--lilac-700), var(--lilac-600));
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: var(--lilac-900);
+        box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-close {
+        background: var(--lilac-200);
+        color: var(--lilac-900);
+    }
+
+    .btn-close:hover {
+        background: var(--lilac-300);
+    }
+
+    .close-x {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--lilac-200);
+        color: var(--lilac-800);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 1.3rem;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .close-x:hover, .close-x:focus {
+        background: var(--lilac-700);
+        color: var(--text-light);
+        outline: none;
+    }
+
+    .game-complete {
+        text-align: center;
+        padding: 30px 20px;
+        background: linear-gradient(135deg, var(--lilac-100), var(--lilac-50));
+        border-radius: 20px;
+        margin-top: 20px;
+        border: 3px dashed var(--lilac-400);
+        display: none;
+    }
+
+    .game-complete.visible {
+        display: block;
+    }
+
+    .game-complete h2 {
+        color: var(--lilac-800);
+        margin: 0 0 10px 0;
+        font-size: 1.6rem;
+    }
+
+    .game-complete p {
+        color: var(--lilac-700);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    @media (max-width: 700px) {
+        .board {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .category-header {
+            min-height: 60px;
+            padding: 12px 8px;
+        }
+        .cell {
+            min-height: 70px;
+            padding: 15px 8px;
+        }
+        .modal {
+            padding: 20px 18px;
+        }
+        .score-panel {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .board {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⭐ Своя игра ⭐</h1>
+        <p class="subtitle">Повторение к ВПР · 4 класс · Русский язык</p>
+    </header>
+
+    <div class="score-panel" role="status" aria-live="polite">
+        <span class="score-label">Очки:</span>
+        <span class="score-value" id="score">0</span>
+        <button class="reset-btn" id="resetBtn" aria-label="Начать игру заново">Заново</button>
+    </div>
+
+    <div class="board" id="board" role="grid" aria-label="Игровое табло"></div>
+
+    <div class="game-complete" id="gameComplete">
+        <h2>🎉 Игра завершена!</h2>
+        <p>Ты ответил на все вопросы. Молодец!</p>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+        <button class="close-x" id="closeX" aria-label="Закрыть">×</button>
+        <div class="modal-header">
+            <span class="modal-category" id="modalCategory"></span>
+            <span class="modal-points" id="modalPoints"></span>
+        </div>
+        <h2 id="modalTitle" style="position:absolute;left:-9999px;">Вопрос</h2>
+        <div class="modal-question" id="modalQuestion"></div>
+        <div class="answer-block" id="answerBlock">
+            <span class="answer-label">✅ Ответ для самопроверки:</span>
+            <div class="answer-text" id="answerText"></div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" id="showAnswerBtn">Показать ответ</button>
+            <button class="btn btn-primary" id="doneBtn">Ответил — закрыть</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== ДАННЫЕ ИГРЫ =====
+    const gameData = [
+        {
+            category: "Фонетика",
+            questions: {
+                100: {
+                    q: "Найди и выпиши слово, в котором одинаковое количество букв и звуков.<br><br><strong>Объявление, пень, праздник, кошка.</strong>",
+                    a: "Правильный ответ: <strong>кошка</strong>."
+                },
+                200: {
+                    q: "В данном предложении найди слово, в котором все согласные звуки звонкие.<br><br><strong>«Алмазами горят в траве капли росы.»</strong>",
+                    a: "Правильный ответ: <strong>алмазами</strong>.<br><br>Согласные в слове: [л], [м], [з], [м] — все звонкие."
+                },
+                300: {
+                    q: "В данном предложении найди слово, в котором все согласные звуки мягкие.<br><br><strong>«Перья защищают птиц от внешних угроз.»</strong>",
+                    a: "Правильный ответ: <strong>перья</strong>.<br><br>Согласные [п’], [р’] — оба мягкие."
+                },
+                400: {
+                    q: "В данном предложении найди слово, в котором все согласные звуки глухие твёрдые.<br><br><strong>«В кустах ребята нашли птичье гнездо.»</strong>",
+                    a: "Правильный ответ: <strong>кустах</strong>.<br><br>Согласные [к], [с], [т] — все глухие и твёрдые."
+                }
+            }
+        },
+        {
+            category: "Предложение",
+            questions: {
+                100: {
+                    q: "Подчеркни главные члены в предложении.<br><br><strong>«Сухая трава побелела от инея.»</strong>",
+                    a: "Главные члены предложения:<br>• <strong>трава</strong> — подлежащее (кто? что?)<br>• <strong>побелела</strong> — сказуемое (что сделала?)"
+                },
+                200: {
+                    q: "Выпиши из предложения словосочетания.<br><br><strong>«Зимой около ёлки оставляют следы на снегу обитатели леса.»</strong>",
+                    a: "Словосочетания:<br>• оставляют следы<br>• оставляют около ёлки<br>• оставляют на снегу<br>• оставляют зимой<br>• обитатели леса"
+                },
+                300: {
+                    q: "Выполни синтаксический разбор предложения.<br><br><strong>«Озорной ветер устилает жёлтыми листьями мокрую землю.»</strong>",
+                    a: "• <strong>ветер</strong> — подлежащее (сущ., И.п.)<br>• <strong>устилает</strong> — сказуемое (гл.)<br>• <strong>озорной</strong> — определение (прил.)<br>• <strong>листьями</strong> — дополнение (сущ., Т.п.)<br>• <strong>землю</strong> — дополнение (сущ., В.п.)<br>• <strong>мокрую</strong> — определение (прил.)<br>• <strong>жёлтыми</strong> — определение (прил.)"
+                },
+                400: {
+                    q: "Выполни синтаксический разбор предложения, укажи падеж существительных.<br><br><strong>«В солнечный день жемчужная кувшинка нежилась на гладкой поверхности реки.»</strong>",
+                    a: "Существительные:<br>• <strong>день</strong> — В.п. (дополнение)<br>• <strong>кувшинка</strong> — И.п. (подлежащее)<br>• <strong>поверхности</strong> — П.п. (дополнение)<br>• <strong>реки</strong> — Р.п. (дополнение)<br><br>Подлежащее: кувшинка. Сказуемое: нежилась. Определения: солнечный, жемчужная, гладкой."
+                }
+            }
+        },
+        {
+            category: "Ударение",
+            questions: {
+                100: {
+                    q: "Выбери слово, в котором ударение падает на <strong>первый слог</strong>.<br><br><strong>алфавит · жаворонок · километр · шофёр</strong>",
+                    a: "Правильный ответ: <strong>жаворонок</strong> (ударение на 1-й слог — на А)."
+                },
+                200: {
+                    q: "В каком ряду <strong>во всех словах</strong> ударение падает на <strong>второй слог</strong>?<br><br><strong>1)</strong> досуг, квартал, центнер<br><strong>2)</strong> звонит, шофёр, столяр<br><strong>3)</strong> алфавит, торты, краны<br><strong>4)</strong> километр, ворота, самовар",
+                    a: "Правильный ответ: <strong>звонит, шофёр, столяр</strong>."
+                },
+                300: {
+                    q: "Расставь ударения. В какой строке все ударения поставлены верно?<br><br><strong>1)</strong> катало́г, до́кумент, сли́вовый<br><strong>2)</strong> катало́г, докуме́нт, сли́вовый<br><strong>3)</strong> катало́г, докуме́нт, сливо́вый<br><strong>4)</strong> ката́лог, докуме́нт, сли́вовый",
+                    a: "Правильный ответ: <strong>строка 2) катало́г, докуме́нт, сли́вовый</strong>.<br><br>Все ударения поставлены верно: катало́г (3-й слог), докуме́нт (3-й слог), сли́вовый (1-й слог)."
+                },
+                400: {
+                    q: "В каком слове ударение падает на <strong>третий слог</strong>?<br><br><strong>1)</strong> жаворонок<br><strong>2)</strong> километр<br><strong>3)</strong> цемент<br><strong>4)</strong> нефтепровод",
+                    a: "Правильный ответ: <strong>километр</strong> (ки-ло-МЕ-тр — ударение на 3-й слог)."
+                }
+            }
+        },
+        {
+            category: "Части речи",
+            questions: {
+                100: {
+                    q: "Укажи над каждым словом часть речи.<br><br><strong>«Над глухою степью в неизвестный путь бесконечной цепью облака плывут.»</strong>",
+                    a: "• Над — предлог<br>• глухою — прилагательное<br>• степью — существительное<br>• в — предлог<br>• неизвестный — прилагательное<br>• путь — существительное<br>• бесконечной — прилагательное<br>• цепью — существительное<br>• облака — существительное<br>• плывут — глагол"
+                },
+                200: {
+                    q: "Найди все имена существительные в той форме, в которой они употреблены в предложении. Укажи род, склонение, число, падеж.<br><br><strong>«Под тяжестью плодов гнутся к земле стройные яблоньки.»</strong>",
+                    a: "• <strong>тяжестью</strong> — ж.р., 3 скл., ед.ч., Т.п.<br>• <strong>плодов</strong> — м.р., 2 скл., мн.ч., Р.п.<br>• <strong>земле</strong> — ж.р., 1 скл., ед.ч., Д.п.<br>• <strong>яблоньки</strong> — ж.р., 1 скл., мн.ч., И.п."
+                },
+                300: {
+                    q: "Найди все формы имён прилагательных с именами существительными, к которым они относятся. Укажи число, род (если есть), падеж.<br><br><strong>«В ясный день в голубом небе раздаётся весёлая песенка жаворонка.»</strong>",
+                    a: "• <strong>ясный день</strong> — м.р., ед.ч., В.п.<br>• <strong>голубом небе</strong> — ср.р., ед.ч., П.п.<br>• <strong>весёлая песенка</strong> — ж.р., ед.ч., И.п."
+                },
+                400: {
+                    q: "Найди все формы имён прилагательных с именами существительными, к которым они относятся. Укажи число, падеж.<br><br><strong>«Гибкие веточки берёз покрылись смолистыми почками.»</strong>",
+                    a: "• <strong>гибкие веточки</strong> — мн.ч., И.п.<br>• <strong>смолистыми почками</strong> — мн.ч., Т.п."
+                }
+            }
+        }
+    ];
+
+    // ===== СОСТОЯНИЕ =====
+    let score = 0;
+    const usedCells = new Set();
+    let currentCell = null;
+    let answerShown = false;
+
+    // ===== ЭЛЕМЕНТЫ =====
+    const board = document.getElementById('board');
+    const scoreEl = document.getElementById('score');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalPoints = document.getElementById('modalPoints');
+    const modalQuestion = document.getElementById('modalQuestion');
+    const answerBlock = document.getElementById('answerBlock');
+    const answerText = document.getElementById('answerText');
+    const showAnswerBtn = document.getElementById('showAnswerBtn');
+    const doneBtn = document.getElementById('doneBtn');
+    const closeX = document.getElementById('closeX');
+    const resetBtn = document.getElementById('resetBtn');
+    const gameComplete = document.getElementById('gameComplete');
+
+    // ===== ПОСТРОЕНИЕ ТАБЛО =====
+    function buildBoard() {
+        board.innerHTML = '';
+        gameData.forEach(cat => {
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.setAttribute('role', 'columnheader');
+            header.textContent = cat.category;
+            board.appendChild(header);
+        });
+        const points = [100, 200, 300, 400];
+        points.forEach(p => {
+            gameData.forEach((cat, catIdx) => {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.textContent = p;
+                cell.setAttribute('role', 'gridcell');
+                cell.setAttribute('aria-label', `${cat.category}, ${p} очков`);
+                cell.dataset.cat = catIdx;
+                cell.dataset.points = p;
+                const key = `${catIdx}-${p}`;
+                if (usedCells.has(key)) {
+                    cell.classList.add('used');
+                    cell.setAttribute('aria-disabled', 'true');
+                }
+                cell.addEventListener('click', () => openQuestion(catIdx, p, cell));
+                board.appendChild(cell);
+            });
+        });
+    }
+
+    // ===== ОТКРЫТИЕ ВОПРОСА =====
+    function openQuestion(catIdx, points, cellEl) {
+        const key = `${catIdx}-${points}`;
+        if (usedCells.has(key)) return;
+
+        const cat = gameData[catIdx];
+        const q = cat.questions[points];
+
+        modalCategory.textContent = cat.category;
+        modalPoints.textContent = points + ' очков';
+        modalQuestion.innerHTML = q.q;
+        answerText.innerHTML = q.a;
+        answerBlock.classList.remove('visible');
+        showAnswerBtn.style.display = 'inline-block';
+        answerShown = false;
+
+        currentCell = { catIdx, points, key, cellEl };
+
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => showAnswerBtn.focus(), 100);
+    }
+
+    // ===== ПОКАЗАТЬ ОТВЕТ =====
+    showAnswerBtn.addEventListener('click', () => {
+        answerBlock.classList.add('visible');
+        showAnswerBtn.style.display = 'none';
+        answerShown = true;
+        doneBtn.focus();
+    });
+
+    // ===== ЗАКРЫТИЕ МОДАЛКИ =====
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        if (currentCell) {
+            usedCells.add(currentCell.key);
+            currentCell.cellEl.classList.add('used');
+            currentCell.cellEl.setAttribute('aria-disabled', 'true');
+            score += currentCell.points;
+            scoreEl.textContent = score;
+            currentCell = null;
+
+            if (usedCells.size === gameData.length * 4) {
+                gameComplete.classList.add('visible');
+            }
+        }
+    }
+
+    doneBtn.addEventListener('click', closeModal);
+    closeX.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+
+    // ===== СБРОС ИГРЫ =====
+    resetBtn.addEventListener('click', () => {
+        if (!confirm('Начать игру заново? Весь прогресс будет сброшен.')) return;
+        score = 0;
+        usedCells.clear();
+        scoreEl.textContent = 0;
+        gameComplete.classList.remove('visible');
+        buildBoard();
+    });
+
+    // ===== СТАРТ =====
+    buildBoard();
+</script>
+</body>
+</html>
